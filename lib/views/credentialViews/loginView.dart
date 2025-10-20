@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:muto_system/views/teacherViews/TeacherHomeView.dart';
 import '../../views/userViews/userHomeView.dart';
 import 'package:muto_system/connections/credentialConnection.dart';
 import 'package:muto_system/views/credentialViews/signupView.dart';
@@ -115,20 +116,35 @@ class _CredentialViewLoginState extends State<CredentialViewLogin> {
                             showSnack('Login realizado com sucesso!', true);
 
                             final token = result['token'];
-                            final user = result['user'];
+                            final user =
+                                result['user_data'] ??
+                                result['user']; // dependendo da API
+                            final userType = result['user_type'];
 
                             debugPrint('Token JWT: $token');
                             debugPrint(
                               'Usuário logado: ${user['nick'] ?? user['email']}',
                             );
+                            debugPrint('Tipo: $userType');
 
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    UserHomeView(token: token),
-                              ),
-                            );
+                            // Navega com base no tipo de usuário
+                            if (userType == 'professor') {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      TeacherHomeView(token: token),
+                                ),
+                              );
+                            } else {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      UserHomeView(token: token),
+                                ),
+                              );
+                            }
                           } else {
                             showSnack(
                               result['message'] ?? 'Falha no login',
@@ -139,6 +155,7 @@ class _CredentialViewLoginState extends State<CredentialViewLogin> {
                           showSnack('Erro inesperado: $e', false);
                         }
                       },
+
                       child: const Text(
                         "Login",
                         style: TextStyle(fontSize: 20),
