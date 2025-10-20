@@ -101,7 +101,12 @@ class _CredentialViewState extends State<CredentialView> {
 
                   TextField(
                     controller: schoolCodeController,
-                    decoration: InputDecoration(labelText: 'Código da escola'),
+                    decoration: InputDecoration(
+                      labelText: 'Código da escola',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    ),
                   ),
 
                   const SizedBox(height: 20),
