@@ -112,13 +112,11 @@ class _CredentialViewLoginState extends State<CredentialViewLogin> {
                             password.text,
                           );
 
-                          if (result['success']) {
+                          if (result['status'] == true) {
                             showSnack('Login realizado com sucesso!', true);
 
                             final token = result['token'];
-                            final user =
-                                result['user_data'] ??
-                                result['user']; // dependendo da API
+                            final user = result['user_data'] ?? result['user'];
                             final userType = result['user_type'];
 
                             debugPrint('Token JWT: $token');
@@ -127,7 +125,6 @@ class _CredentialViewLoginState extends State<CredentialViewLogin> {
                             );
                             debugPrint('Tipo: $userType');
 
-                            // Navega com base no tipo de usuário
                             if (userType == 'professor') {
                               Navigator.pushReplacement(
                                 context,
