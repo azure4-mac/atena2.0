@@ -30,7 +30,11 @@ class CredentialConnection {
 
   // ---------- REGISTRO ----------
   static Future<Map<String, dynamic>> register(
-      String email, String senha, String nick, String schoolCode) async {
+    String email,
+    String senha,
+    String nick,
+    String schoolCode,
+  ) async {
     final url = Uri.parse('$baseUrl/register');
     final response = await http.post(
       url,
@@ -59,7 +63,7 @@ class CredentialConnection {
     }
   }
 
-// ---------- PERFIL DO USUÁRIO ----------
+  // ---------- PERFIL DO USUÁRIO ----------
   static Future<Map<String, dynamic>> getProfile(String token) async {
     final url = Uri.parse('$baseUrl/me');
     final response = await http.get(
@@ -76,7 +80,7 @@ class CredentialConnection {
       return {
         'success': true,
         'data': data['user'],
-        'nick'
+        'nick': data['user']['nick'],
         'escola': data['escola'],
         'user_type': data['user_type'],
       };
