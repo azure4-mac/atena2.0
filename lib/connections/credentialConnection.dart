@@ -14,19 +14,17 @@ class CredentialConnection {
       body: jsonEncode({'email': email, 'senha': senha}),
     );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+    final data = jsonDecode(response.body);
+
+    if (response.statusCode == 200 && data['status'] == true) {
       return {
-        'success': true,
+        'status': true,
         'token': data['token'],
-        'user': data['user_data'],
-        'type': data['user_type'],
+        'user_data': data['user_data'],
+        'user_type': data['user_type'],
       };
     } else {
-      return {
-        'success': false,
-        'message': jsonDecode(response.body)['message'] ?? 'Falha no login',
-      };
+      return {'status': false, 'message': data['message'] ?? 'Falha no login'};
     }
   }
 
@@ -45,7 +43,7 @@ class CredentialConnection {
         'email': email,
         'senha': senha,
         'nick': nick,
-        'school_code': schoolCode, // <- novo campo
+        'school_code': schoolCode,
       }),
     );
 
@@ -55,7 +53,7 @@ class CredentialConnection {
         'success': true,
         'message': data['message'] ?? 'Usuário criado com sucesso!',
         'user': data['user'],
-        'role': data['role'] ?? data['user_type'], // se o backend enviar isso
+        'role': data['role'] ?? data['user_type'],
       };
     } else {
       return {
