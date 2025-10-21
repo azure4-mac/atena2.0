@@ -138,7 +138,7 @@ class _CredentialViewLoginState extends State<CredentialViewLogin> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      UserHomeView(token: token),
+                                      UserProfileView(token: token),
                                 ),
                               );
                             }
