@@ -30,11 +30,7 @@ class CredentialConnection {
 
   // ---------- REGISTRO ----------
   static Future<Map<String, dynamic>> register(
-    String email,
-    String senha,
-    String nick,
-    String schoolCode,
-  ) async {
+      String email, String senha, String nick, String schoolCode) async {
     final url = Uri.parse('$baseUrl/register');
     final response = await http.post(
       url,
@@ -59,6 +55,35 @@ class CredentialConnection {
       return {
         'success': false,
         'message': jsonDecode(response.body)['message'] ?? 'Falha no cadastro',
+      };
+    }
+  }
+
+// ---------- PERFIL DO USUÁRIO ----------
+  static Future<Map<String, dynamic>> getProfile(String token) async {
+    final url = Uri.parse('$baseUrl/me');
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    final data = jsonDecode(response.body);
+
+    if (response.statusCode == 200 && data['status'] == true) {
+      return {
+        'success': true,
+        'data': data['user'],
+        'nick'
+        'escola': data['escola'],
+        'user_type': data['user_type'],
+      };
+    } else {
+      return {
+        'success': false,
+        'message': data['message'] ?? 'Falha ao carregar perfil',
       };
     }
   }
