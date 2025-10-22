@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:muto_system/views/teacherViews/TeacherHomeView.dart';
-import '../../views/userViews/userHomeView.dart';
+import '../userViews/userProfileView.dart';
 import 'package:muto_system/connections/credentialConnection.dart';
 import 'package:muto_system/views/credentialViews/signupView.dart';
 import 'package:muto_system/configs/colors.dart' as ThemeColors;
