@@ -1,96 +1,65 @@
 import 'package:flutter/material.dart';
-import 'package:muto_system/connections/studentConnection.dart';
 import 'package:muto_system/configs/colors.dart' as ThemeColors;
+import 'package:muto_system/connections/credentialConnection.dart';
+import 'package:muto_system/connections/studentConnection.dart';
 
-class UserProfileView extends StatefulWidget {
-  final String token;
-  final Function(Map<String, dynamic>?)? onProfileUpdated;
-
-  const UserProfileView({Key? key, required this.token, this.onProfileUpdated})
-    : super(key: key);
+class ProfilePage extends StatefulWidget {
+  const ProfilePage({super.key});
 
   @override
-  State<UserProfileView> createState() => _UserProfileViewState();
+  State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _UserProfileViewState extends State<UserProfileView> {
-  Map<String, dynamic>? user;
-  bool loading = true;
-  String? errorMsg;
+class _ProfilePageState extends State<ProfilePage> {
+  Map<String, dynamic>? userData;
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    _loadProfile();
   }
 
-  Future<void> _loadUserData() async {
-    setState(() {
-      loading = true;
-      errorMsg = null;
-    });
-
-    final result = await StudentConnection.getProfile(widget.token);
-
-    if (result['success']) {
-      setState(() {
-        user = result['data'];
-        loading = false;
-      });
-      if (widget.onProfileUpdated != null) {
-        widget.onProfileUpdated!(user);
+  Future<void> _loadProfile() async {
+    final token = await ApiConnection.getToken();
+    if (token != null) {
+      final response = await CredentialConnection.getProfile(token);
+      if (response['success']) {
+        setState(() {
+          userData = response['data'];
+          isLoading = false;
+        });
+      } else {
+        setState(() => isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Erro ao carregar perfil'),
+          ),
+        );
       }
     } else {
-      setState(() {
-        errorMsg = result['message'] ?? 'Erro ao carregar perfil';
-        loading = false;
-      });
+      setState(() => isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (loading) {
+    if (isLoading) {
       return const Scaffold(
         backgroundColor: Colors.black,
-        body: Center(child: CircularProgressIndicator(color: Colors.white)),
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
-    if (errorMsg != null) {
-      return Scaffold(
-        backgroundColor: ThemeColors.Colors.background_black,
-        appBar: AppBar(
-          backgroundColor: Colors.blueAccent,
-          title: const Text("Perfil"),
-        ),
-        body: Center(
-          child: Text(
-            errorMsg!,
-            style: const TextStyle(color: Colors.red, fontSize: 16),
-          ),
-        ),
-      );
-    }
-
-    final email = user?['email'] ?? '—';
-    final nivel = user?['nivel']?.toString() ?? '1';
-    final ofensiva = user?['ofensiva']?.toString() ?? '—';
-    final escola = user?['escola']?['nick'] ?? 'Sem escola';
+    // Pega dados do usuário e escola
+    final user = userData?['user'];
+    final escola = userData?['escola'];
+    final nome = user?['nick'] ?? 'Sem nome';
+    final avatarUrl = user?['avatar'] ?? 'assets/img/default_avatar.png';
+    final escolaNome = escola?['nick'] ?? 'Sem escola';
 
     return Scaffold(
       backgroundColor: ThemeColors.Colors.background_black,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text("Meu Perfil"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
-          ),
-        ],
-      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -101,34 +70,44 @@ class _UserProfileViewState extends State<UserProfileView> {
                   height: 200,
                   decoration: const BoxDecoration(
                     image: DecorationImage(
-                      image: AssetImage('assets/img/example.png'),
+                      image: AssetImage('assets/img/ColorExample.png'),
                       fit: BoxFit.cover,
                     ),
                   ),
                 ),
-                const Positioned(
-                  bottom: 0,
+                Positioned(
+                  bottom: 10,
                   child: CircleAvatar(
                     radius: 65,
-                    backgroundImage: AssetImage('assets/img/example.png'),
+                    backgroundImage: avatarUrl.startsWith('http')
+                        ? NetworkImage(avatarUrl)
+                        : AssetImage(avatarUrl) as ImageProvider,
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 50),
             Text(
-              email,
+              nome,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              'Estudante do $escolaNome',
               style: const TextStyle(color: Colors.white70, fontSize: 16),
             ),
             const SizedBox(height: 8),
-            Row(
+            const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.school, color: Colors.white),
-                const SizedBox(width: 6),
+                Icon(Icons.local_fire_department, color: Colors.white),
+                SizedBox(width: 6),
                 Text(
-                  escola,
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                  '224 dias', // você pode substituir por userData['dias'] se tiver
+                  style: TextStyle(color: Colors.white, fontSize: 16),
                 ),
               ],
             ),
@@ -144,10 +123,10 @@ class _UserProfileViewState extends State<UserProfileView> {
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _StatusInfo(title: 'Ofensiva', value: ofensiva),
-                      _StatusInfo(title: 'Nível', value: nivel),
-                      _StatusInfo(title: 'Escola', value: escola),
+                    children: const [
+                      _StatusInfo(title: 'Avançado', value: 'Mat. 32/78'),
+                      _StatusInfo(title: 'Nível', value: '54'),
+                      _StatusInfo(title: 'Liga', value: 'Platina (2º)'),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -159,9 +138,9 @@ class _UserProfileViewState extends State<UserProfileView> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  const Row(
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
+                    children: const [
                       Icon(Icons.military_tech, color: Colors.grey, size: 40),
                       Icon(Icons.emoji_events, color: Colors.orange, size: 40),
                       Icon(Icons.star, color: Colors.yellow, size: 40),
@@ -181,16 +160,17 @@ class _UserProfileViewState extends State<UserProfileView> {
               child: Column(
                 children: [
                   ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/conquistas');
-                    },
+                    onPressed: () {},
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue.shade800,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Text('Todas as Conquistas'),
+                    child: const Text(
+                      'Todas as Conquistas',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Row(
@@ -225,7 +205,7 @@ class _UserProfileViewState extends State<UserProfileView> {
                 ],
               ),
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 20),
           ],
         ),
       ),
@@ -236,6 +216,7 @@ class _UserProfileViewState extends State<UserProfileView> {
 class _StatusInfo extends StatelessWidget {
   final String title;
   final String value;
+
   const _StatusInfo({required this.title, required this.value});
 
   @override
